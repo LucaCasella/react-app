@@ -1,17 +1,61 @@
-import {useState} from "react";
+import {useState, useEffect} from "react";
 import "./Blog.css";
 import {PostList} from "./postsList";
 import * as Consts from "./Consts";
 import {PostEditor} from "./postEditor";
+import {LoadingIndicator} from "./loadingIndicator";
+import {LIST, EDITOR, API_URL} from "./Consts";
 
 
 export function Blog(props) {
     const [posts, setPosts] = useState(mockPosts);
     const [view, setView] = useState(Consts.LIST);
+    const [loading, setLoading] = useState(false);
+
+    useEffect(() => {
+        setLoading(true);
+
+        if (view === LIST){
+            fetch(Consts.API_URL)
+                .then((response) => {
+                    if (response.ok) {
+                        return response.json();
+                    }
+                    throw new Error("Request Failed")
+                })
+                .then(posts => {
+                    setPosts(posts);
+                    setLoading(false);
+                });
+        }
+
+    }, [view]);
 
     function onClickHandler() {
-        console.log("clicked");
+        setView(EDITOR);
     }
+
+    function onCancelHendler(){
+        setView(LIST);
+    }
+
+    // function onCreateHandler(p) {
+    //     fetch(API_URL, {
+    //         method: 'post',
+    //         headers: {
+    //             'Accept': 'application/json',
+    //             'Content-Type': 'application/json'
+    //         },
+    //         body: JSON.stringify(p)
+    //     })
+    //         .then(response => {
+    //             if (!response.ok) throw new Error("Post creation failed");
+    //         })
+    //         .catch(ex => console.error('failure', ex))
+    //         .finally(() => {
+    //             setView(LIST);
+    //         });
+    // }
 
     // usage
     if (view === Consts.EDITOR){
@@ -22,8 +66,16 @@ export function Blog(props) {
         <button onClick={onClickHandler}>Add Post</button>
         <PostList posts={posts}/>
     </>;
+
+    // return <>
+    //     { view !== EDITOR && <button onClick={onClickHandler}>Add Post</button>}
+    //     { loading && view !== EDITOR && <LoadingIndicator color={"#ff4400"} size={"10em"} />}
+    //     { !loading && view !== EDITOR && <PostList posts={posts} /> }
+    //     { view === EDITOR && <PostEditor onCreate={onCreateHandler} lastId={posts[0].id} onCancel={onCancelHandler} /> }
+    // </>;
+
 }
-//se non voglio un wrapper uso un react fragment <> </> sembra che ci sia un wrappe ma non c'è, siamo sulla root
+//se non voglio un wrapper uso un react fragment <> </> sembra che ci sia un wrapper ma non c'è, siamo sulla root
 
 
 const mockPosts = [
